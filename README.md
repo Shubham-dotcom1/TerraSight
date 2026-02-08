@@ -91,6 +91,9 @@ VITE_SENTINEL_CLIENT_ID=sentinel-hub.com
 VITE_SENTINEL_CLIENT_SECRET=sentinel-hub.com
 VITE_SUPABASE_URL=supabase.com
 VITE_SUPABASE_ANON_KEY=supabase.com
+VITE_POLYGON_AMOY_RPC=polygonamoyrpc.com
+VITE_PRIVATE_KEY=metamask.com
+VITE_NISAR_TOKEN=nisar.com
 ```
 
 **Full setup guide:** [Environment Configuration](docs/setup.md)
