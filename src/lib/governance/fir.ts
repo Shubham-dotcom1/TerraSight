@@ -153,24 +153,24 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
         color: rgb(0.4, 0.4, 0.4),
     });
 
-    yPosition = height - margin - 97; // Start body content well below header area
+    yPosition = height - margin - 70; // Compact header spacing
 
     // --- CASE INFORMATION (Table-like) ---
-    drawLine("Case Information", 14, helveticaBold);
-    yPosition -= 5;
+    drawLine("Case Information", 12, helveticaBold);
+    yPosition -= 3;
 
     // Table Logic
     const tableRx = margin;
     const col1Width = 150;
-    const rowHeight = 20;
+    const rowHeight = 16; // Reduced from 20
 
     const drawRow = (label: string, value: string) => {
         checkPageBreak(rowHeight);
 
         // Draw Label
-        currentPage.drawText(label, { x: tableRx + 5, y: yPosition - 14, size: 10, font: timesRomanBold, color: rgb(0.2, 0.2, 0.2) });
+        currentPage.drawText(label, { x: tableRx + 5, y: yPosition - 11, size: 9, font: timesRomanBold, color: rgb(0.2, 0.2, 0.2) });
         // Draw Value
-        currentPage.drawText(value, { x: tableRx + col1Width + 10, y: yPosition - 14, size: 10, font: timesRoman });
+        currentPage.drawText(value, { x: tableRx + col1Width + 10, y: yPosition - 11, size: 9, font: timesRoman });
 
         // Draw Box Border
         currentPage.drawRectangle({
@@ -226,13 +226,13 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
     drawRow("Risk Level", (detection.severity || detection.type) === 'CRITICAL' ? "High (CRITICAL)" : "Moderate");
     drawRow("AI Confidence", "98.4% (Verified)");
 
-    yPosition -= 25;
+    yPosition -= 12;
 
     // --- EVIDENCE IMAGE HEADING ---
-    drawLine("Satellite Evidence", 14, helveticaBold);
-    yPosition -= 8;
-    drawLine("Source: Sentinel-2 Optical Imagery (10m/px resolution)", 9, timesRoman, margin, rgb(0.5, 0.5, 0.5));
-    yPosition -= 20;
+    drawLine("Satellite Evidence", 12, helveticaBold);
+    yPosition -= 5;
+    drawLine("Source: Sentinel-2 Optical Imagery (10m/px resolution)", 8, timesRoman, margin, rgb(0.5, 0.5, 0.5));
+    yPosition -= 12;
 
     // --- EVIDENCE IMAGE EMBEDDING ---
     if (detection.img_url) {
@@ -250,9 +250,9 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
             // Use higher scale factor for better quality
             // Constrain maximum size to fit page width
             const maxWidth = width - (margin * 2);
-            const maxHeight = 400; // Maximum height for evidence image
+            const maxHeight = 400; // Maximum size to fill first page
 
-            let scale = 0.8; // Higher quality than previous 0.5
+            let scale = 0.85; // High quality - first page has space
             let imgDims = evidenceImage.scale(scale);
 
             // Adjust scale if image is too large
@@ -288,8 +288,8 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
 
 
     // --- EVIDENCE SUMMARY ---
-    drawLine("Evidence Summary", 14, helveticaBold);
-    yPosition -= 5;
+    drawLine("Evidence Summary", 11, helveticaBold);
+    yPosition -= 4;
     const summaryText = `Satellite imagery analysis conducted by TerraSight AI indicates significant land-use change consistent with ${violation.toLowerCase()}. The analysis confirms unauthorized activity on protected land without valid permissions. The evidence is validated using multi-source satellite data (Sentinel-1 SAR + Optical) and cross-referenced with cadastral maps.`;
 
     // Simple text wrapping (basic)
@@ -297,20 +297,20 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
     let line = '';
     for (const word of words) {
         const testLine = line + word + ' ';
-        const widthLine = timesRoman.widthOfTextAtSize(testLine, 10);
+        const widthLine = timesRoman.widthOfTextAtSize(testLine, 9);
         if (widthLine > width - (margin * 2)) {
-            drawLine(line, 10, timesRoman);
+            drawLine(line, 9, timesRoman);
             line = word + ' ';
         } else {
             line = testLine;
         }
     }
-    drawLine(line, 10, timesRoman); // last line
-    yPosition -= 15;
+    drawLine(line, 9, timesRoman); // last line
+    yPosition -= 10;
 
     // --- LEGAL PROVISIONS ---
-    drawLine("Applicable Legal Provisions", 14, helveticaBold);
-    yPosition -= 5;
+    drawLine("Applicable Legal Provisions", 11, helveticaBold);
+    yPosition -= 4;
     const act = detection.legal?.act || "Environmental Protection Act, 1986";
     const section = detection.legal?.section || "Section 15";
 
@@ -321,48 +321,48 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
         "4. State Land Abuse Control Regulation, 2025"
     ];
 
-    laws.forEach(law => drawLine(law, 10, timesRoman));
-    yPosition -= 15;
+    laws.forEach(law => drawLine(law, 9, timesRoman));
+    yPosition -= 10;
 
     // --- REQUIRED ACTION ---
-    drawLine("Required Action", 14, helveticaBold);
-    yPosition -= 5;
+    drawLine("Required Action", 11, helveticaBold);
+    yPosition -= 4;
     const actionText = "The concerned authority is advised to initiate immediate investigation and legal proceedings. The violator must submit valid ownership and approval documents within 15 days from the date of this notice. Failure to comply may result in eviction, demolition, and legal penalties as per applicable laws.";
 
     const actionWords = actionText.split(' ');
     let actionLine = '';
     for (const word of actionWords) {
         const testLine = actionLine + word + ' ';
-        if (timesRoman.widthOfTextAtSize(testLine, 10) > width - (margin * 2)) {
-            drawLine(actionLine, 10, timesRoman);
+        if (timesRoman.widthOfTextAtSize(testLine, 9) > width - (margin * 2)) {
+            drawLine(actionLine, 9, timesRoman);
             actionLine = word + ' ';
         } else {
             actionLine = testLine;
         }
     }
-    drawLine(actionLine, 10, timesRoman);
-    yPosition -= 20;
+    drawLine(actionLine, 9, timesRoman);
+    yPosition -= 12;
 
     // --- RECOMMENDATIONS ---
-    drawLine("TerraSight Recommendations", 14, helveticaBold);
-    yPosition -= 5;
+    drawLine("TerraSight Recommendations", 11, helveticaBold);
+    yPosition -= 4;
     const recs = [
         "• Immediate site inspection by Field Unit",
         "• Temporary suspension of construction activity",
         "• Verification of land records (Khata / Khasra)",
         "• Environmental impact assessment"
     ];
-    recs.forEach(r => drawLine(r, 10, timesRoman, margin + 5));
-    yPosition -= 30;
+    recs.forEach(r => drawLine(r, 9, timesRoman, margin + 5));
+    yPosition -= 18;
 
     // --- AUTHORIZED BY ---
     // Ensure signature block stays together if possible
     checkPageBreak(100);
 
-    drawLine("Authorized By", 12, helveticaBold);
-    drawLine("TerraSight Compliance & Legal Intelligence System", 10, timesRoman);
-    drawLine("Digital Signature: Verified (Blockchain Hash Validation)", 10, timesRoman, margin, rgb(0, 0.5, 0));
-    drawLine(`Date: ${new Date().toDateString()}`, 10, timesRoman);
+    drawLine("Authorized By", 11, helveticaBold);
+    drawLine("TerraSight Compliance & Legal Intelligence System", 9, timesRoman);
+    drawLine(`Digital Signature: Verified (Blockchain Hash Validation)`, 9, timesRoman, margin, rgb(0, 0.5, 0));
+    drawLine(`Date: ${new Date().toDateString()}`, 9, timesRoman);
 
     // Footer at bottom
     // Note: This only draws on the LAST page key the current logic. 
