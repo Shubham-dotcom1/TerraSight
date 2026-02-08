@@ -228,37 +228,64 @@ export const generateFIR = async (detectionId: string | number, directData?: Det
 
     yPosition -= 25;
 
+    // --- EVIDENCE IMAGE HEADING ---
+    drawLine("Satellite Evidence", 14, helveticaBold);
+    yPosition -= 8;
+    drawLine("Source: Sentinel-2 Optical Imagery (10m/px resolution)", 9, timesRoman, margin, rgb(0.5, 0.5, 0.5));
+    yPosition -= 20;
+
     // --- EVIDENCE IMAGE EMBEDDING ---
     if (detection.img_url) {
         try {
             const imageBytes = await fetch(detection.img_url).then(res => res.arrayBuffer());
-            let evidenceImage;
-            if (detection.img_url.startsWith('blob:') || detection.img_url.includes('.png')) {
-                evidenceImage = await pdfDoc.embedPng(imageBytes).catch(() => pdfDoc.embedJpg(imageBytes));
-            } else {
+            let evidenceImage: PDFImage;
+
+            // Try PNG first (lossless), fallback to JPG
+            try {
+                evidenceImage = await pdfDoc.embedPng(imageBytes);
+            } catch {
                 evidenceImage = await pdfDoc.embedJpg(imageBytes);
             }
 
-            if (evidenceImage) {
-                const imgDims = evidenceImage.scale(0.5);
-                checkPageBreak(imgDims.height + 20);
+            // Use higher scale factor for better quality
+            // Constrain maximum size to fit page width
+            const maxWidth = width - (margin * 2);
+            const maxHeight = 400; // Maximum height for evidence image
 
-                // Center image
-                const xImg = (width - imgDims.width) / 2;
-                currentPage.drawImage(evidenceImage, {
-                    x: xImg,
-                    y: yPosition - imgDims.height,
-                    width: imgDims.width,
-                    height: imgDims.height
-                });
-                yPosition -= (imgDims.height + 20);
+            let scale = 0.8; // Higher quality than previous 0.5
+            let imgDims = evidenceImage.scale(scale);
+
+            // Adjust scale if image is too large
+            if (imgDims.width > maxWidth) {
+                scale = maxWidth / evidenceImage.width;
+                imgDims = evidenceImage.scale(scale);
             }
+            if (imgDims.height > maxHeight) {
+                const heightScale = maxHeight / evidenceImage.height;
+                if (heightScale < scale) {
+                    scale = heightScale;
+                    imgDims = evidenceImage.scale(scale);
+                }
+            }
+
+            checkPageBreak(imgDims.height + 20);
+
+            // Center image
+            const xImg = (width - imgDims.width) / 2;
+            currentPage.drawImage(evidenceImage, {
+                x: xImg,
+                y: yPosition - imgDims.height,
+                width: imgDims.width,
+                height: imgDims.height
+            });
+            yPosition -= (imgDims.height + 20);
         } catch (e) {
             console.warn("Failed to embed evidence image in PDF", e);
             drawLine("[Image Embedding Failed: Secure Link Expired]", 10, timesRoman, margin, rgb(1, 0, 0));
             yPosition -= 20;
         }
     }
+
 
     // --- EVIDENCE SUMMARY ---
     drawLine("Evidence Summary", 14, helveticaBold);
